@@ -1,14 +1,14 @@
 {
   "name": "Controle de Gastos",
-  "short_name": "Controle de Gastos",
+  "short_name": "Gastos",
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/assets/icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon.png",
+      "src": "/assets/icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
