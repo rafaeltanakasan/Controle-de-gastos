@@ -17,6 +17,19 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 """, unsafe_allow_html=True)
+
+# Script para registrar o Service Worker
+st.markdown("""
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+    console.log('Service Worker registrado com sucesso:', registration);
+  }).catch(function(error) {
+    console.log('Falha ao registrar o Service Worker:', error);
+  });
+}
+</script>
+""", unsafe_allow_html=True)
 import streamlit as st
 import pandas as pd
 import plotly.express as px
