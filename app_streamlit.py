@@ -1,4 +1,6 @@
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # Lista para armazenar os gastos
 if 'gastos' not in st.session_state:
@@ -7,8 +9,8 @@ if 'gastos' not in st.session_state:
 # Título do app
 st.title("Controle de Gastos")
 
-# Entrada de dados
-data = st.text_input("Data (dd/mm/aaaa)")
+# Entrada de dados com campo de data melhorado
+data = st.date_input("Data", pd.to_datetime("today"))
 categoria = st.text_input("Categoria (ex: Alimentação, Transporte)")
 descricao = st.text_input("Descrição")
 valor = st.number_input("Valor (JPY)", min_value=0.0, step=100.0)
@@ -16,9 +18,9 @@ tipo = st.selectbox("Tipo", ["Fixo", "Variável"])
 
 # Botão para adicionar gasto
 if st.button("Adicionar Gasto"):
-    if data and categoria and descricao and valor > 0:
+    if categoria and descricao and valor > 0:
         gasto = {
-            "data": data,
+            "data": data.strftime('%d/%m/%Y'),
             "categoria": categoria,
             "descricao": descricao,
             "valor": valor,
@@ -32,8 +34,8 @@ if st.button("Adicionar Gasto"):
 # Exibir lista de gastos
 st.subheader("Lista de Gastos")
 if st.session_state.gastos:
-    for gasto in st.session_state.gastos:
-        st.write(f"{gasto['data']} - {gasto['categoria']}: {gasto['descricao']} - {gasto['valor']} JPY ({gasto['tipo']})")
+    gastos_df = pd.DataFrame(st.session_state.gastos)
+    st.write(gastos_df)
 else:
     st.write("Nenhum gasto registrado.")
 
@@ -60,3 +62,23 @@ if st.button("Calcular Total por Categoria"):
             st.write(f"{categoria}: {total} JPY")
     else:
         st.write("Nenhum gasto registrado para calcular o total.")
+
+# Exibir Gráfico de Total por Categoria
+if st.session_state.gastos:
+    categoria_totais = {}
+    for gasto in st.session_state.gastos:
+        categoria = gasto["categoria"]
+        valor = gasto["valor"]
+        categoria_totais[categoria] = categoria_totais.get(categoria, 0) + valor
+
+    st.subheader("Gráfico de Gastos por Categoria")
+    categorias = list(categoria_totais.keys())
+    totais = list(categoria_totais.values())
+    
+    fig, ax = plt.subplots()
+    ax.bar(categorias, totais)
+    ax.set_xlabel('Categoria')
+    ax.set_ylabel('Total (JPY)')
+    ax.set_title('Gastos por Categoria')
+
+    st.pyplot(fig)
