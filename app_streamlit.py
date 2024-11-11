@@ -1,62 +1,56 @@
 import streamlit as st
+import pandas as pd
+from datetime import datetime
 
-# Lista para armazenar os gastos
-if 'gastos' not in st.session_state:
-    st.session_state.gastos = []
+# Nome do arquivo CSV para salvar o histórico
+HISTORICO_ARQUIVO = 'historico_gastos.csv'
 
-# Título do app
+# Função para carregar o histórico de gastos do arquivo CSV
+def carregar_historico():
+    try:
+        return pd.read_csv(HISTORICO_ARQUIVO)
+    except FileNotFoundError:
+        return pd.DataFrame(columns=['Data', 'Categoria', 'Descrição', 'Valor'])
+
+# Função para salvar o histórico de gastos no arquivo CSV
+def salvar_historico(dados):
+    dados.to_csv(HISTORICO_ARQUIVO, index=False)
+
+# Carregar o histórico de gastos ao iniciar o app
+historico = carregar_historico()
+
+# Configurar o título do app
 st.title("Controle de Gastos")
 
-# Entrada de dados
-data = st.text_input("Data (dd/mm/aaaa)")
-categoria = st.text_input("Categoria (ex: Alimentação, Transporte)")
+# Entradas do usuário
+st.header("Adicionar Novo Gasto")
+data = st.date_input("Data", datetime.now())
+categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Saúde", "Outros"])
 descricao = st.text_input("Descrição")
-valor = st.number_input("Valor (JPY)", min_value=0.0, step=100.0)
-tipo = st.selectbox("Tipo", ["Fixo", "Variável"])
+valor = st.number_input("Valor", min_value=0.0, format="%.2f")
 
-# Botão para adicionar gasto
+# Botão para adicionar o gasto
 if st.button("Adicionar Gasto"):
-    if data and categoria and descricao and valor > 0:
-        gasto = {
-            "data": data,
-            "categoria": categoria,
-            "descricao": descricao,
-            "valor": valor,
-            "tipo": tipo
-        }
-        st.session_state.gastos.append(gasto)  # Armazena o gasto na lista de gastos
-        st.success("Gasto adicionado com sucesso!")
-    else:
-        st.error("Por favor, preencha todos os campos corretamente.")
+    # Adiciona o novo gasto ao DataFrame histórico
+    novo_gasto = pd.DataFrame({
+        "Data": [data],
+        "Categoria": [categoria],
+        "Descrição": [descricao],
+        "Valor": [valor]
+    })
+    historico = pd.concat([historico, novo_gasto], ignore_index=True)
+    salvar_historico(historico)  # Salva o histórico atualizado
+    st.success("Gasto adicionado com sucesso!")
 
-# Exibir lista de gastos
-st.subheader("Lista de Gastos")
-if st.session_state.gastos:
-    for gasto in st.session_state.gastos:
-        st.write(f"{gasto['data']} - {gasto['categoria']}: {gasto['descricao']} - {gasto['valor']} JPY ({gasto['tipo']})")
-else:
-    st.write("Nenhum gasto registrado.")
+# Exibe o histórico de gastos
+st.header("Histórico de Gastos")
+st.dataframe(historico)
 
-# Calcular total de todos os gastos
-if st.button("Calcular Total de Todos os Gastos"):
-    if st.session_state.gastos:
-        total = sum(gasto['valor'] for gasto in st.session_state.gastos)
-        st.subheader("Total de Todos os Gastos")
-        st.write(f"Total: {total} JPY")
-    else:
-        st.write("Nenhum gasto registrado para calcular o total.")
+# Cálculos
+st.header("Resumo dos Gastos")
+gasto_por_categoria = historico.groupby("Categoria")["Valor"].sum()
+gasto_total = historico["Valor"].sum()
 
-# Calcular total por categoria
-if st.button("Calcular Total por Categoria"):
-    if st.session_state.gastos:
-        categoria_totais = {}
-        for gasto in st.session_state.gastos:
-            categoria = gasto["categoria"]
-            valor = gasto["valor"]
-            categoria_totais[categoria] = categoria_totais.get(categoria, 0) + valor
-
-        st.subheader("Total por Categoria")
-        for categoria, total in categoria_totais.items():
-            st.write(f"{categoria}: {total} JPY")
-    else:
-        st.write("Nenhum gasto registrado para calcular o total.")
+st.write("Total por Categoria:")
+st.write(gasto_por_categoria)
+st.write("Total Geral:", gasto_total)
