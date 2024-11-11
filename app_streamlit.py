@@ -75,10 +75,12 @@ if st.session_state.gastos:
     categorias = list(categoria_totais.keys())
     totais = list(categoria_totais.values())
     
+    # Gerando o gráfico com Matplotlib
     fig, ax = plt.subplots()
-    ax.bar(categorias, totais)
+    ax.bar(categorias, totais, color='skyblue')
     ax.set_xlabel('Categoria')
     ax.set_ylabel('Total (JPY)')
     ax.set_title('Gastos por Categoria')
 
+    # Exibindo o gráfico no Streamlit
     st.pyplot(fig)
