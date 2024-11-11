@@ -71,15 +71,20 @@ st.dataframe(historico_filtrado)
 
 # Gráficos
 st.header("Gráficos de Gastos")
-fig1, ax1 = plt.subplots()
-historico.groupby("Categoria")["Valor"].sum().plot(kind="bar", ax=ax1)
-ax1.set_ylabel("Total Gasto")
-st.pyplot(fig1)
 
-fig2, ax2 = plt.subplots()
-historico.groupby("Data")["Valor"].sum().plot(ax=ax2)
-ax2.set_ylabel("Total Gasto Diário")
-st.pyplot(fig2)
+# Verificar se há dados para os gráficos
+if not historico.empty:
+    fig1, ax1 = plt.subplots()
+    historico.groupby("Categoria")["Valor"].sum().plot(kind="bar", ax=ax1)
+    ax1.set_ylabel("Total Gasto")
+    st.pyplot(fig1)
+
+    fig2, ax2 = plt.subplots()
+    historico.groupby("Data")["Valor"].sum().plot(ax=ax2)
+    ax2.set_ylabel("Total Gasto Diário")
+    st.pyplot(fig2)
+else:
+    st.write("Ainda não há dados suficientes para exibir gráficos.")
 
 # Exportar histórico
 csv = converter_para_csv(historico)
