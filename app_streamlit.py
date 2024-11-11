@@ -1,69 +1,52 @@
-import datetime
+import streamlit as st
 
-# Dicionário para armazenar os gastos
+# Lista para armazenar os gastos
 gastos = []
 
-# Função para adicionar um gasto
-def adicionar_gasto():
-    data = input("Digite a data (dd/mm/aaaa): ")
-    categoria = input("Digite a categoria (ex: Alimentação, Transporte): ")
-    descricao = input("Digite uma descrição do gasto: ")
-    valor = float(input("Digite o valor (em JPY): "))
-    tipo = input("Digite o tipo (Fixo/Variável): ")
-    
-    gasto = {
-        "data": data,
-        "categoria": categoria,
-        "descricao": descricao,
-        "valor": valor,
-        "tipo": tipo
-    }
-    gastos.append(gasto)
-    print("Gasto adicionado com sucesso!")
+# Título do app
+st.title("Controle de Gastos")
 
-# Função para listar todos os gastos
-def listar_gastos():
-    if not gastos:
-        print("Nenhum gasto registrado.")
+# Entrada de dados
+data = st.text_input("Data (dd/mm/aaaa)")
+categoria = st.text_input("Categoria (ex: Alimentação, Transporte)")
+descricao = st.text_input("Descrição")
+valor = st.number_input("Valor (JPY)", min_value=0.0, step=100.0)
+tipo = st.selectbox("Tipo", ["Fixo", "Variável"])
+
+# Botão para adicionar gasto
+if st.button("Adicionar Gasto"):
+    if data and categoria and descricao and valor > 0:
+        gasto = {
+            "data": data,
+            "categoria": categoria,
+            "descricao": descricao,
+            "valor": valor,
+            "tipo": tipo
+        }
+        gastos.append(gasto)
+        st.success("Gasto adicionado com sucesso!")
     else:
-        print("Lista de gastos:")
-        for gasto in gastos:
-            print(f"Data: {gasto['data']}, Categoria: {gasto['categoria']}, Descrição: {gasto['descricao']}, Valor: {gasto['valor']} JPY, Tipo: {gasto['tipo']}")
+        st.error("Por favor, preencha todos os campos corretamente.")
 
-# Função para calcular o total por categoria
-def calcular_total_categoria():
-    categoria_totais = {}
+# Exibir lista de gastos
+st.subheader("Lista de Gastos")
+if gastos:
     for gasto in gastos:
-        categoria = gasto["categoria"]
-        valor = gasto["valor"]
-        categoria_totais[categoria] = categoria_totais.get(categoria, 0) + valor
-    
-    print("Total por categoria:")
-    for categoria, total in categoria_totais.items():
-        print(f"{categoria}: {total} JPY")
+        st.write(f"{gasto['data']} - {gasto['categoria']}: {gasto['descricao']} - {gasto['valor']} JPY ({gasto['tipo']})")
+else:
+    st.write("Nenhum gasto registrado.")
 
-# Função principal do programa
-def main():
-    while True:
-        print("\nControle de Gastos")
-        print("1. Adicionar Gasto")
-        print("2. Listar Gastos")
-        print("3. Calcular Total por Categoria")
-        print("4. Sair")
-        
-        opcao = input("Escolha uma opção: ")
-        
-        if opcao == "1":
-            adicionar_gasto()
-        elif opcao == "2":
-            listar_gastos()
-        elif opcao == "3":
-            calcular_total_categoria()
-        elif opcao == "4":
-            print("Saindo do programa...")
-            break
-        else:
-            print("Opção inválida! Tente novamente.")
+# Total por categoria
+if st.button("Calcular Total por Categoria"):
+    if gastos:
+        categoria_totais = {}
+        for gasto in gastos:
+            categoria = gasto["categoria"]
+            valor = gasto["valor"]
+            categoria_totais[categoria] = categoria_totais.get(categoria, 0) + valor
 
-# Executa o programa
-main()
+        st.subheader("Total por Categoria")
+        for categoria, total in categoria_totais.items():
+            st.write(f"{categoria}: {total} JPY")
+    else:
+        st.write("Nenhum gasto registrado para calcular o total.")
