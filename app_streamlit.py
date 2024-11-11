@@ -1,7 +1,8 @@
 import streamlit as st
 
 # Lista para armazenar os gastos
-gastos = []
+if 'gastos' not in st.session_state:
+    st.session_state.gastos = []
 
 # Título do app
 st.title("Controle de Gastos")
@@ -23,24 +24,24 @@ if st.button("Adicionar Gasto"):
             "valor": valor,
             "tipo": tipo
         }
-        gastos.append(gasto)
+        st.session_state.gastos.append(gasto)
         st.success("Gasto adicionado com sucesso!")
     else:
         st.error("Por favor, preencha todos os campos corretamente.")
 
 # Exibir lista de gastos
 st.subheader("Lista de Gastos")
-if gastos:
-    for gasto in gastos:
+if st.session_state.gastos:
+    for gasto in st.session_state.gastos:
         st.write(f"{gasto['data']} - {gasto['categoria']}: {gasto['descricao']} - {gasto['valor']} JPY ({gasto['tipo']})")
 else:
     st.write("Nenhum gasto registrado.")
 
 # Total por categoria
 if st.button("Calcular Total por Categoria"):
-    if gastos:
+    if st.session_state.gastos:
         categoria_totais = {}
-        for gasto in gastos:
+        for gasto in st.session_state.gastos:
             categoria = gasto["categoria"]
             valor = gasto["valor"]
             categoria_totais[categoria] = categoria_totais.get(categoria, 0) + valor
