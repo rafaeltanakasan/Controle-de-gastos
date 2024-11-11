@@ -110,4 +110,4 @@ gasto_total_mes = historico_mes["Valor"].sum()
 
 st.write("Total por Categoria:")
 st.write(gasto_por_categoria_mes)
-st.write("Total do Mês:", f"R$ {gasto_total_mes:.2f}") de 
+st.write("Total do Mês:", f"R$ {gasto_total_mes:.2f}")
