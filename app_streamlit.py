@@ -24,7 +24,7 @@ if st.button("Adicionar Gasto"):
             "valor": valor,
             "tipo": tipo
         }
-        st.session_state.gastos.append(gasto)
+        st.session_state.gastos.append(gasto)  # Armazena o gasto na lista de gastos
         st.success("Gasto adicionado com sucesso!")
     else:
         st.error("Por favor, preencha todos os campos corretamente.")
