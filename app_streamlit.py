@@ -51,7 +51,7 @@ if st.button("Adicionar Gasto"):
 
 # Seção para exibir o histórico e resumo dos gastos
 with st.expander("📅 Histórico de Gastos", expanded=True):
-    st.write(historico[["Data", "Categoria", "Descrição", "Valor"]].style.hide_index())
+    st.dataframe(historico[["Data", "Categoria", "Descrição", "Valor"]])  # Exibe a tabela sem .style
 
 with st.expander("📊 Resumo dos Gastos"):
     gasto_por_categoria = historico.groupby("Categoria")["Valor"].sum()
