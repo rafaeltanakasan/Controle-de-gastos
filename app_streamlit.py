@@ -174,3 +174,22 @@ with st.expander("Resumo Mensal dos Gastos", expanded=True):
     st.write("Total por Categoria:")
     st.write(gasto_por_categoria_mes)
     st.write("Total do Mês:", f"R$ {gasto_total_mes:.2f}")
+import streamlit as st
+
+# Link para o Manifesto
+st.markdown("""
+<link rel="manifest" href="/manifest.json">
+""", unsafe_allow_html=True)
+
+# Link para o Service Worker
+st.markdown("""
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+    console.log('Service Worker registrado com sucesso:', registration);
+  }).catch(function(error) {
+    console.log('Falha ao registrar o Service Worker:', error);
+  });
+}
+</script>
+""", unsafe_allow_html=True)
