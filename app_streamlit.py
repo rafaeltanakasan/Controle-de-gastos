@@ -37,7 +37,16 @@ if st.session_state.gastos:
 else:
     st.write("Nenhum gasto registrado.")
 
-# Total por categoria
+# Calcular total de todos os gastos
+if st.button("Calcular Total de Todos os Gastos"):
+    if st.session_state.gastos:
+        total = sum(gasto['valor'] for gasto in st.session_state.gastos)
+        st.subheader("Total de Todos os Gastos")
+        st.write(f"Total: {total} JPY")
+    else:
+        st.write("Nenhum gasto registrado para calcular o total.")
+
+# Calcular total por categoria
 if st.button("Calcular Total por Categoria"):
     if st.session_state.gastos:
         categoria_totais = {}
