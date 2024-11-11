@@ -19,19 +19,26 @@ def salvar_historico(dados):
 # Carregar o histórico de gastos ao iniciar o app
 historico = carregar_historico()
 
-# Configurar o título do app
-st.title("Controle de Gastos")
+# Configurações gerais
+st.set_page_config(page_title="Controle de Gastos", layout="centered")
+st.markdown("<style>footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 
-# Entradas do usuário
-st.header("Adicionar Novo Gasto")
-data = st.date_input("Data", datetime.now())
-categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Saúde", "Outros"])
-descricao = st.text_input("Descrição")
-valor = st.number_input("Valor", min_value=0.0, format="%.2f")
+# Título e subtítulo minimalistas
+st.title("💰 Controle de Gastos")
+st.caption("Organize e monitore seus gastos de forma prática.")
+
+# Seção para entrada de dados com layout em colunas
+st.header("Adicionar Gasto")
+col1, col2 = st.columns(2)
+with col1:
+    data = st.date_input("Data", datetime.now())
+    categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Saúde", "Outros"])
+with col2:
+    descricao = st.text_input("Descrição")
+    valor = st.number_input("Valor", min_value=0.0, format="%.2f")
 
 # Botão para adicionar o gasto
 if st.button("Adicionar Gasto"):
-    # Adiciona o novo gasto ao DataFrame histórico
     novo_gasto = pd.DataFrame({
         "Data": [data],
         "Categoria": [categoria],
@@ -42,15 +49,13 @@ if st.button("Adicionar Gasto"):
     salvar_historico(historico)  # Salva o histórico atualizado
     st.success("Gasto adicionado com sucesso!")
 
-# Exibe o histórico de gastos
-st.header("Histórico de Gastos")
-st.dataframe(historico)
+# Seção para exibir o histórico e resumo dos gastos
+with st.expander("📅 Histórico de Gastos", expanded=True):
+    st.write(historico[["Data", "Categoria", "Descrição", "Valor"]].style.hide_index())
 
-# Cálculos
-st.header("Resumo dos Gastos")
-gasto_por_categoria = historico.groupby("Categoria")["Valor"].sum()
-gasto_total = historico["Valor"].sum()
-
-st.write("Total por Categoria:")
-st.write(gasto_por_categoria)
-st.write("Total Geral:", gasto_total)
+with st.expander("📊 Resumo dos Gastos"):
+    gasto_por_categoria = historico.groupby("Categoria")["Valor"].sum()
+    gasto_total = historico["Valor"].sum()
+    st.write("**Total por Categoria:**")
+    st.write(gasto_por_categoria)
+    st.write("**Total Geral:**", f"R$ {gasto_total:.2f}")
