@@ -2,15 +2,16 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 
-# Inicializar histórico de gastos
-try:
-    historico = pd.read_csv("gastos.csv")
-except FileNotFoundError:
-    historico = pd.DataFrame(columns=["Data", "Categoria", "Descrição", "Valor (¥)"])
+# Carregar ou inicializar histórico de gastos usando session_state
+if "historico" not in st.session_state:
+    try:
+        st.session_state.historico = pd.read_csv("gastos.csv")
+    except FileNotFoundError:
+        st.session_state.historico = pd.DataFrame(columns=["Data", "Categoria", "Descrição", "Valor (¥)"])
 
-# Função para salvar os dados
+# Função para salvar os dados apenas quando necessário
 def salvar_dados():
-    historico.to_csv("gastos.csv", index=False)
+    st.session_state.historico.to_csv("gastos.csv", index=False)
 
 st.title("💰 Controle de Gastos")
 st.write("Organize e monitore seus gastos de forma prática e simples.")
@@ -41,18 +42,18 @@ with col2:
             'Descrição': [descricao],
             'Valor (¥)': [valor]
         })
-        historico = pd.concat([historico, novo_gasto], ignore_index=True)
+        st.session_state.historico = pd.concat([st.session_state.historico, novo_gasto], ignore_index=True)
         salvar_dados()
         st.success("Gasto adicionado com sucesso!")
 
 # Exibir histórico de gastos na coluna 1
 with col1:
     st.subheader("Histórico de Gastos")
-    if not historico.empty:
-        st.dataframe(historico)
+    if not st.session_state.historico.empty:
+        st.dataframe(st.session_state.historico)
 
         # Exibir o total de gastos
-        total_gastos = historico["Valor (¥)"].sum()
+        total_gastos = st.session_state.historico["Valor (¥)"].sum()
         st.write(f"**Total de Gastos:** ¥{total_gastos:,.2f}")
     else:
         st.write("Nenhum gasto registrado.")
@@ -61,13 +62,13 @@ with col1:
 st.subheader("Buscar ou Editar Gasto")
 
 # Adicionar filtro de categoria
-categoria_filtro = st.selectbox("Filtrar por Categoria", ["Todas"] + historico["Categoria"].unique().tolist())
+categoria_filtro = st.selectbox("Filtrar por Categoria", ["Todas"] + st.session_state.historico["Categoria"].unique().tolist())
 
 # Filtrar os dados com base na categoria selecionada
 if categoria_filtro != "Todas":
-    historico_filtrado = historico[historico["Categoria"] == categoria_filtro]
+    historico_filtrado = st.session_state.historico[st.session_state.historico["Categoria"] == categoria_filtro]
 else:
-    historico_filtrado = historico
+    historico_filtrado = st.session_state.historico
 
 # Exibir os gastos filtrados
 if not historico_filtrado.empty:
@@ -78,16 +79,16 @@ else:
 # Função para editar ou excluir gastos
 st.subheader("Editar ou Excluir Gasto")
 
-if len(historico) > 0:
+if len(st.session_state.historico) > 0:
     # Alterar para utilizar `selectbox` com as descrições dos gastos
     selected_index = st.selectbox(
         "Selecione o gasto para editar/excluir:",
-        historico.index.tolist(),
-        format_func=lambda x: f"{historico.loc[x, 'Data']} - {historico.loc[x, 'Categoria']} - {historico.loc[x, 'Descrição']}"
+        st.session_state.historico.index.tolist(),
+        format_func=lambda x: f"{st.session_state.historico.loc[x, 'Data']} - {st.session_state.historico.loc[x, 'Categoria']} - {st.session_state.historico.loc[x, 'Descrição']}"
     )
 
     # Mostrar os campos de edição com os dados do gasto selecionado
-    gasto_selecionado = historico.loc[selected_index]
+    gasto_selecionado = st.session_state.historico.loc[selected_index]
     
     categoria_edit = st.selectbox("Categoria", [
         "Alimentação", "Transporte", "Lazer", "Educação", "Saúde", 
@@ -100,17 +101,17 @@ if len(historico) > 0:
 
     if st.button("Salvar Alterações"):
         # Atualizar o gasto no DataFrame
-        historico.loc[selected_index, "Categoria"] = categoria_edit
-        historico.loc[selected_index, "Descrição"] = descricao_edit
-        historico.loc[selected_index, "Valor (¥)"] = valor_edit
+        st.session_state.historico.loc[selected_index, "Categoria"] = categoria_edit
+        st.session_state.historico.loc[selected_index, "Descrição"] = descricao_edit
+        st.session_state.historico.loc[selected_index, "Valor (¥)"] = valor_edit
         salvar_dados()
         st.success("Gasto editado com sucesso!")
     
     if st.button("Excluir Gasto"):
         confirm = st.checkbox("Tem certeza que deseja excluir este gasto?", value=False)
         if confirm:
-            historico.drop(selected_index, inplace=True)
-            historico.reset_index(drop=True, inplace=True)
+            st.session_state.historico.drop(selected_index, inplace=True)
+            st.session_state.historico.reset_index(drop=True, inplace=True)
             salvar_dados()
             st.success("Gasto excluído com sucesso!")
 else:
