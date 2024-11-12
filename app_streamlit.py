@@ -50,6 +50,13 @@ with col2:
 with col1:
     st.subheader("Histórico de Gastos")
     st.dataframe(historico)
+    
+    # Exibir o total de gastos
+    if not historico.empty:
+        total_gastos = historico["Valor (¥)"].sum()
+        st.write(f"Total de Gastos: ¥{total_gastos:,.2f}")
+    else:
+        st.write("Nenhum gasto registrado.")
 
 # Função para editar ou excluir gastos
 st.subheader("Editar ou Excluir Gasto")
