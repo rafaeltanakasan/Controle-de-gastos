@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from datetime import date
+import os
 
 # Configuração de Página e Estilo
 st.set_page_config(page_title="Controle de Gastos em Ienes", layout="wide")
@@ -14,25 +15,30 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Dados iniciais
-historico = pd.DataFrame({
-    'Data': [date(2024, 11, 1), date(2024, 11, 2), date(2024, 11, 3)],
-    'Categoria': ['Alimentação', 'Transporte', 'Lazer'],
-    'Descrição': ['Supermercado', 'Uber', 'Cinema'],
-    'Valor (¥)': [1000, 500, 300]
-})
+# Nome do arquivo onde os dados serão salvos
+arquivo_dados = 'historico_gastos.csv'
 
-# Função para atualizar o DataFrame
+# Carregar os dados do arquivo se ele existir
+if os.path.exists(arquivo_dados):
+    historico = pd.read_csv(arquivo_dados)
+else:
+    historico = pd.DataFrame(columns=['Data', 'Categoria', 'Descrição', 'Valor (¥)'])
+
+# Funções de manipulação de dados
+def salvar_dados():
+    historico.to_csv(arquivo_dados, index=False)
+
 def atualizar_gasto(idx, nova_data, nova_categoria, nova_descricao, novo_valor):
-    historico.loc[idx, 'Data'] = nova_data
-    historico.loc[idx, 'Categoria'] = nova_categoria
-    historico.loc[idx, 'Descrição'] = nova_descricao
-    historico.loc[idx, 'Valor (¥)'] = novo_valor
+    historico.at[idx, 'Data'] = nova_data
+    historico.at[idx, 'Categoria'] = nova_categoria
+    historico.at[idx, 'Descrição'] = nova_descricao
+    historico.at[idx, 'Valor (¥)'] = novo_valor
+    salvar_dados()
 
-# Função para excluir uma linha do DataFrame
 def excluir_gasto(idx):
     global historico
     historico = historico.drop(idx).reset_index(drop=True)
+    salvar_dados()
 
 # Exibir o Dashboard
 st.title("💰 Controle de Gastos em Ienes")
@@ -40,9 +46,12 @@ col1, col2 = st.columns([3, 1])
 
 # Gráfico de despesas por categoria
 with col1:
-    fig = px.bar(historico, x='Categoria', y='Valor (¥)', title="Despesas por Categoria", color="Categoria",
-                 labels={'Valor (¥)': 'Valor em Ienes (¥)'})
-    st.plotly_chart(fig, use_container_width=True)
+    if not historico.empty:
+        fig = px.bar(historico, x='Categoria', y='Valor (¥)', title="Despesas por Categoria", color="Categoria",
+                     labels={'Valor (¥)': 'Valor em Ienes (¥)'})
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.write("Nenhum gasto registrado para exibir o gráfico.")
 
 # Formulário para adicionar novo gasto
 with col2:
@@ -51,11 +60,10 @@ with col2:
         data = st.date_input("Data", value=date.today())
         categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Lazer", "Educação", "Saúde"])
         descricao = st.text_input("Descrição")
-        valor = st.number_input("Valor (¥)", min_value=0, format="%d")  # Formato inteiro sem casas decimais
+        valor = st.number_input("Valor (¥)", min_value=0, format="%d")
         submit_button = st.form_submit_button("Adicionar")
 
     if submit_button:
-        # Adiciona o gasto ao DataFrame
         novo_gasto = pd.DataFrame({
             'Data': [data],
             'Categoria': [categoria],
@@ -63,33 +71,34 @@ with col2:
             'Valor (¥)': [valor]
         })
         historico = pd.concat([historico, novo_gasto], ignore_index=True)
+        salvar_dados()
         st.success("Gasto adicionado com sucesso!")
 
 # Painel com Dados e Opções de Edição/Exclusão
 st.subheader("Histórico de Gastos")
-selecionado = st.selectbox("Selecione o índice para editar ou excluir", historico.index)
+if not historico.empty:
+    selecionado = st.selectbox("Selecione o gasto para editar ou excluir", historico.index, format_func=lambda x: f"{historico.loc[x, 'Data']} - {historico.loc[x, 'Categoria']} - ¥{historico.loc[x, 'Valor (¥)']}")
 
-# Exibir os detalhes do gasto selecionado para edição
-st.write("### Editar Gasto Selecionado")
-data = st.date_input("Data", value=historico.loc[selecionado, "Data"])
-categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Lazer", "Educação", "Saúde"], index=["Alimentação", "Transporte", "Lazer", "Educação", "Saúde"].index(historico.loc[selecionado, "Categoria"]))
-descricao = st.text_input("Descrição", value=historico.loc[selecionado, "Descrição"])
-valor = st.number_input("Valor (¥)", min_value=0, value=int(historico.loc[selecionado, "Valor (¥)"]), format="%d")
+    st.write("### Editar Gasto Selecionado")
+    data = st.date_input("Data", value=pd.to_datetime(historico.loc[selecionado, "Data"]))
+    categoria = st.selectbox("Categoria", ["Alimentação", "Transporte", "Lazer", "Educação", "Saúde"], index=["Alimentação", "Transporte", "Lazer", "Educação", "Saúde"].index(historico.loc[selecionado, "Categoria"]))
+    descricao = st.text_input("Descrição", value=historico.loc[selecionado, "Descrição"])
+    valor = st.number_input("Valor (¥)", min_value=0, value=int(historico.loc[selecionado, "Valor (¥)"]), format="%d")
 
-# Botões para confirmar edição ou exclusão
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("Atualizar Gasto"):
-        atualizar_gasto(selecionado, data, categoria, descricao, valor)
-        st.success("Gasto atualizado com sucesso!")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Atualizar Gasto"):
+            atualizar_gasto(selecionado, data, categoria, descricao, valor)
+            st.success("Gasto atualizado com sucesso!")
 
-with col2:
-    if st.button("Excluir Gasto"):
-        excluir_gasto(selecionado)
-        st.success("Gasto excluído com sucesso!")
+    with col2:
+        if st.button("Excluir Gasto"):
+            excluir_gasto(selecionado)
+            st.success("Gasto excluído com sucesso!")
 
-# Exibir tabela atualizada
-st.table(historico)
+    st.table(historico)
+else:
+    st.write("Nenhum gasto registrado ainda.")
 
 # Totalizador em Ienes
 gasto_total = historico['Valor (¥)'].sum()
