@@ -106,6 +106,7 @@ if len(st.session_state.historico) > 0:
         st.session_state.historico.loc[selected_index, "Valor (¥)"] = valor_edit
         salvar_dados()
         st.success("Gasto editado com sucesso!")
+        st.experimental_rerun()  # Recarregar a página para refletir as alterações imediatamente
     
     if st.button("Excluir Gasto"):
         confirm = st.checkbox("Tem certeza que deseja excluir este gasto?", value=False)
@@ -114,5 +115,6 @@ if len(st.session_state.historico) > 0:
             st.session_state.historico.reset_index(drop=True, inplace=True)
             salvar_dados()
             st.success("Gasto excluído com sucesso!")
+            st.experimental_rerun()  # Recarregar a página após a exclusão para refletir imediatamente
 else:
     st.warning("Não há gastos registrados para editar ou excluir.")
