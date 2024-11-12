@@ -51,20 +51,21 @@ with col1:
     st.subheader("Histórico de Gastos")
     st.dataframe(historico)
 
-# Função para excluir gastos
+# Função para editar ou excluir gastos
 st.subheader("Editar ou Excluir Gasto")
-selected_index = st.number_input("Índice do gasto para editar/excluir:", min_value=0, max_value=len(historico)-1, step=1)
 
-if st.button("Excluir Gasto"):
-    if len(historico) > 0:
+# Verificar se o histórico tem dados para evitar erro no number_input
+if len(historico) > 0:
+    selected_index = st.number_input("Índice do gasto para editar/excluir:", min_value=0, max_value=len(historico)-1, step=1)
+    
+    if st.button("Excluir Gasto"):
         historico.drop(selected_index, inplace=True)
         historico.reset_index(drop=True, inplace=True)
         salvar_dados()
         st.success("Gasto excluído com sucesso!")
 
-# Atualizar gasto (exemplo simples de edição)
-if st.button("Editar Gasto"):
-    if len(historico) > 0:
+    # Atualizar gasto (exemplo simples de edição)
+    if st.button("Editar Gasto"):
         historico.loc[selected_index, "Categoria"] = st.selectbox("Categoria", [
             "Alimentação", "Transporte", "Lazer", "Educação", "Saúde", 
             "Moradia", "Serviços Públicos", "Entretenimento", "Roupas", 
@@ -74,3 +75,5 @@ if st.button("Editar Gasto"):
         historico.loc[selected_index, "Valor (¥)"] = st.number_input("Valor (¥)", min_value=0, format="%d")
         salvar_dados()
         st.success("Gasto editado com sucesso!")
+else:
+    st.warning("Não há gastos registrados para editar ou excluir.")
