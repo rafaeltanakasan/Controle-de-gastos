@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 
+# Carregar e aplicar o CSS personalizado
+st.markdown('<style>' + open('style.css').read() + '</style>', unsafe_allow_html=True)
+
 # Carregar ou inicializar histórico de gastos usando session_state
 if "historico" not in st.session_state:
     try:
@@ -58,29 +61,10 @@ with col1:
     else:
         st.write("Nenhum gasto registrado.")
 
-# Filtros e busca de gastos
-st.subheader("Buscar ou Editar Gasto")
-
-# Adicionar filtro de categoria
-categoria_filtro = st.selectbox("Filtrar por Categoria", ["Todas"] + st.session_state.historico["Categoria"].unique().tolist())
-
-# Filtrar os dados com base na categoria selecionada
-if categoria_filtro != "Todas":
-    historico_filtrado = st.session_state.historico[st.session_state.historico["Categoria"] == categoria_filtro]
-else:
-    historico_filtrado = st.session_state.historico
-
-# Exibir os gastos filtrados
-if not historico_filtrado.empty:
-    st.dataframe(historico_filtrado)
-else:
-    st.write("Nenhum gasto encontrado para a categoria selecionada.")
-
 # Função para editar ou excluir gastos
 st.subheader("Editar ou Excluir Gasto")
 
 if len(st.session_state.historico) > 0:
-    # Alterar para utilizar `selectbox` com as descrições dos gastos
     selected_index = st.selectbox(
         "Selecione o gasto para editar/excluir:",
         st.session_state.historico.index.tolist(),
