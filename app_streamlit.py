@@ -9,7 +9,7 @@ if "historico" not in st.session_state:
     except FileNotFoundError:
         st.session_state.historico = pd.DataFrame(columns=["Data", "Categoria", "Descrição", "Valor (¥)"])
 
-# Função para salvar os dados apenas quando necessário
+# Função para salvar os dados
 def salvar_dados():
     st.session_state.historico.to_csv("gastos.csv", index=False)
 
@@ -115,6 +115,5 @@ if len(st.session_state.historico) > 0:
             st.session_state.historico.reset_index(drop=True, inplace=True)
             salvar_dados()
             st.success("Gasto excluído com sucesso!")
-            st.experimental_rerun()  # Recarregar a página após a exclusão para refletir imediatamente
 else:
     st.warning("Não há gastos registrados para editar ou excluir.")
