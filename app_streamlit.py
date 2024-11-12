@@ -2,6 +2,37 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 
+# Definir estilo com Streamlit
+st.set_page_config(page_title="Controle de Gastos", page_icon="💰", layout="wide")
+
+# Estilo personalizado para a página
+st.markdown("""
+    <style>
+    .stButton>button {
+        background-color: #4CAF50;
+        color: white;
+        font-size: 16px;
+        padding: 10px;
+        border-radius: 5px;
+    }
+    .stButton>button:hover {
+        background-color: #45a049;
+    }
+    .stDataFrame {
+        background-color: #f9f9f9;
+        border-radius: 10px;
+    }
+    .stSelectbox, .stNumberInput, .stTextInput {
+        font-size: 14px;
+        padding: 10px;
+    }
+    .stSubtitle {
+        font-size: 22px;
+        color: #333;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 # Inicializar histórico de gastos
 try:
     historico = pd.read_csv("gastos.csv")
@@ -82,10 +113,12 @@ if len(historico) > 0:
     selected_index = st.selectbox("Selecione o gasto para editar/excluir:", historico.index.tolist(), format_func=lambda x: f"{historico.loc[x, 'Data']} - {historico.loc[x, 'Categoria']}")
 
     if st.button("Excluir Gasto"):
-        historico.drop(selected_index, inplace=True)
-        historico.reset_index(drop=True, inplace=True)
-        salvar_dados()
-        st.success("Gasto excluído com sucesso!")
+        confirm = st.checkbox("Tem certeza que deseja excluir este gasto?", value=False)
+        if confirm:
+            historico.drop(selected_index, inplace=True)
+            historico.reset_index(drop=True, inplace=True)
+            salvar_dados()
+            st.success("Gasto excluído com sucesso!")
 
     # Atualizar gasto (exemplo simples de edição)
     if st.button("Editar Gasto"):
